@@ -31,8 +31,10 @@ class ChonBan extends Component {
             this.setState({
                 ban: newArr
             });
+            
             this.props.fetch_ban_success(this.state.ban);
         })
+      
         var ma_goi_mon = localStorage.getItem('hoa_don');
         var ban = localStorage.getItem('ban');
         if (ma_goi_mon) {

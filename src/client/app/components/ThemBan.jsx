@@ -32,7 +32,7 @@ class ThemBan extends Component {
             event.preventDefault();
             return;
         }
-        db.ref('ban').push(this.state.ban_moi, (error) => {
+        db.ref('ban/' +this.state.ban_moi.vi_tri ).set(this.state.ban_moi, (error) => {
             if(error)
             {
                 this.setState({
