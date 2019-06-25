@@ -10,11 +10,15 @@ class ChonMon extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            mon: null
+            mon: null,
+            mon_duoc_chon: [],
+            mon_da_goi: []
+
         };
         this.handleClick = this.handleClick.bind(this);
         this.SoLy = this.SoLy.bind(this);
         this.handleClickCong = this.handleClickCong.bind(this);
+        this.handleClickTru = this.handleClickTru.bind(this);
         this.handleClickTru = this.handleClickTru.bind(this);
     }
     componentWillMount() {
@@ -30,7 +34,7 @@ class ChonMon extends Component {
             });
             // firebase.database().ref('mon').off('value');
         })
-        this.props.xoa_cac_mon_trong_reducer();
+        // this.props.xoa_cac_mon_trong_reducer();
         let ban = localStorage.getItem('ban')
         if(!ban){
             return this.props.history.push({
@@ -39,14 +43,12 @@ class ChonMon extends Component {
         }
         let ma_hoa_don = localStorage.getItem('hoa_don')
         if(ma_hoa_don){
-            firebase.database().ref('goi_mon/' + ma_hoa_don).on("value", (database) => {
-                const Array = Object.values(database.val())
-                Array.splice(-1,1);
+            firebase.database().ref('goi_mon/' + ma_hoa_don + '/mon').on("value", (database) => {
+                const Array = database.val()
                 Array.map((value, index) =>{
                    let mon = [];
-                   mon[0]=index;
-                   mon[1]=value;
-                    this.props.them_mon_vao_gio_hang(mon)
+                    this.state.mon_da_goi.push(value)
+                    // this.props.them_mon_vao_gio_hang(mon)
                 })
             })
         }
@@ -56,61 +58,75 @@ class ChonMon extends Component {
         firebase.database().ref().off()
         // firebase.database().goOffline()
     }
-    handleClick(id, trang_thai) {
-        let xoa_mon = false;
-        let mon_duoc_chon = this.state.mon.filter((value, index) => {
-            if (value[0] === id) {
-                var newState= this.state.mon;
-                if(newState[index][1].duoc_chon === true)//xóa ra khỏi giỏ hàng
-                {
-                    this.props.xoa_mon_khoi_gio_hang(id);
-                    xoa_mon = true;
-                }
-                else {
-                    newState[index][1].so_luong = 1;
-                }
-                newState[index][1].duoc_chon = !newState[index][1].duoc_chon;
-                this.setState({mon: [...newState]});
-                return value;
-            }
-        });
-        if(!xoa_mon)
-        this.props.them_mon_vao_gio_hang(mon_duoc_chon[0]);
-    }
-    handleClickCong(Mon){
-        
-        let mon_duoc_chon = this.state.mon.filter((value, index) => {
-            if (value[0] === Mon[0]) {
-                var newState= this.state.mon;
-                newState[index][1].so_luong = newState[index][1].so_luong + 1;
-                this.setState({mon: [...newState]});
-                Mon.change = 1;
-                this.props.thay_doi_so_luong_mon_trong_gio_hang(Mon);
+    handleClick(id, mon, trang_thai) {
+        var monRemix = mon
+        monRemix.id_mon = id
+        monRemix.so_luong = 1
+        var newState = this.state.mon_duoc_chon.filter((value, index)=>{
+            if(value.id_mon === id){
                 return value
             }
         })
-    }
-    handleClickTru(Mon){
-        
-        let mon_duoc_chon = this.state.mon.filter((value, index) => {
-            if (value[0] === Mon[0]) {
-                var newState= this.state.mon;
-                if(newState[index][1].so_luong > 1)
-                newState[index][1].so_luong = newState[index][1].so_luong - 1;
-                this.setState({mon: [...newState]});
-                Mon.change = -1;
-                this.props.thay_doi_so_luong_mon_trong_gio_hang(Mon);
-                return value
-            }
-        })
-    }
-    SoLy(value,trang_thai,so_luong){
-        var html = [];
-        if(trang_thai === 'success')
+        if(!newState.length) // không tìm thấy món đó trong state mon_duoc_chon
         {
-            html.push(<div className="" key={so_luong}> <span>Số Ly: {so_luong} </span><button type="button" onClick={() => this.handleClickCong(value)} className={"btn3d btn btn-default btn-sm"}>+</button><button type="button" onClick={() => this.handleClickTru(value)} className={"btn3d btn btn-default btn-sm"}>-</button></div>)
+            var stateMonDuocChon = this.state.mon_duoc_chon
+            stateMonDuocChon.push(monRemix)
+            this.setState({mon_duoc_chon: stateMonDuocChon})
+        }else {// tìm thấy món đó trong state mon_duoc_chon và xóa nó đi
+            var stateMonDuocChon = this.state.mon_duoc_chon.filter( value => value.id_mon !== id)
+            this.setState({mon_duoc_chon: stateMonDuocChon})
         }
+       console.log(newState)
+    }
+    handleClickCong(id_mon){
+        
+        let mon_duoc_chon = this.state.mon_duoc_chon.filter((value, index) => {
+            if (value.id_mon === id_mon) {
+                var newState= this.state.mon_duoc_chon;
+                newState[index].so_luong = newState[index].so_luong + 1;
+                this.setState({mon_duoc_chon: [...newState]});
+                // this.props.thay_doi_so_luong_mon_trong_gio_hang(Mon);
+                return value
+            }
+        })
+    }
+    handleClickTru(id_mon){
+        
+        let mon_duoc_chon = this.state.mon_duoc_chon.filter((value, index) => {
+            if (value.id_mon === id_mon) {
+                var newState= this.state.mon_duoc_chon;
+                if(value.so_luong === 1)// xóa ra khỏi món được chọn
+                {
+                    newState = this.state.mon_duoc_chon.filter(value2 => value2.id_mon !== id_mon)
+                }
+                else 
+                newState[index].so_luong = newState[index].so_luong - 1;
+                this.setState({mon_duoc_chon: [...newState]});
+                // this.props.thay_doi_so_luong_mon_trong_gio_hang(Mon);
+                return value
+            }
+        })
+    }
+    SoLy(id_mon){
+        var html = [];
+        let mon_duoc_chon = this.state.mon_duoc_chon.map((value, index)=>{
+            if(value.id_mon === id_mon)
+            {
+                let {trang_thai, so_luong} = value
+                html.push(<div className="" key={id_mon}> <span>Số Ly: {so_luong} </span><button type="button" onClick={() => this.handleClickCong(id_mon)} className={"btn3d btn btn-default btn-sm"}>+</button><button type="button" onClick={() => this.handleClickTru(id_mon)} className={"btn3d btn btn-default btn-sm"}>-</button></div>)
+            }
+        })
         return(<div className="">{html}</div>)
+    }
+    trangThaiChonMon(id_mon)
+    {
+        let mon = this.state.mon_duoc_chon.filter( value => value.id_mon === id_mon)
+        if(mon.length){
+            return true
+        }
+        else {
+            return false
+        }
     }
     taoMon = () => {
         var mon = this.state.mon;
@@ -118,19 +134,20 @@ class ChonMon extends Component {
         if (mon != null) {
             mon.map((value, index) => {
                 let Mon= this.props.items;
-                let trang_thai = (value[1].duoc_chon === true) ? 'success':'default';
+                // let trang_thai = (value[1].duoc_chon === true) ? 'success':'default';
+                let trang_thai = (this.trangThaiChonMon(value[0])) ? 'success':'default';
                 danh_sach_mon.push(
                     <div className="row mot_dong_mon_an" key={value[0]}>
-                        <div className="col-4">
-                            < img className={"btn3d btn btn-" + trang_thai + " btn-lg img_chon_mon"} onClick={() => this.handleClick(value[0], value[1].trang_thai)} name={value[0]} value={value[0]} src={value[1].hinh} alt="" style={{ width: 85, height: 85, display: "block" }} />
+                        <div className="col-4 col-sm-3">
+                            < img className={"btn3d btn btn-" + trang_thai + " btn-lg img_chon_mon"} onClick={() => this.handleClick(value[0], value[1], value[1].trang_thai)} name={value[0]} value={value[0]} src={value[1].hinh} alt="" style={{ width: 85, height: 85, display: "block" }} />
                         </div>
-                        <div className="col-8">
+                        <div className="col-8 col-sm-9">
                             <span className="ten_mon text-justify">{value[1].ten_mon} </span><br />
                             <NumberFormat value={value[1].gia} displayType={'text'} thousandSeparator={true} renderText={value => <div className="gia">{value}VNĐ</div>} />
                             <p className="text-left" style={{display: value[1].duoc_chon ? 'none':'block'}}>{value[1].mo_ta}</p>
                             <div className="col-12 padding_zero">
                                 {
-                                   this.SoLy(value,trang_thai, value[1].so_luong)
+                                   this.SoLy(value[0])
                                 }
                         </div>
                         </div>
@@ -143,11 +160,12 @@ class ChonMon extends Component {
     }
     Tong_Tien = () =>{
         let t = 0;
-        this.props.items.map((value, index) =>{
-            t += value[1].gia * value[1].so_luong
+        if(this.state.mon_duoc_chon)
+       { this.state.mon_duoc_chon.map((value, index) =>{
+            t += value.gia * value.so_luong
         })
         return  <NumberFormat key="tong_tien
-        " value={t} displayType={'text'} thousandSeparator={true} renderText={value => <div className="gia">{value}VNĐ</div>} />
+        " value={t} displayType={'text'} thousandSeparator={true} renderText={value => <div className="gia">{value}VNĐ</div>} />}
     }
     render() {
         return (
@@ -155,7 +173,7 @@ class ChonMon extends Component {
                 <DoiBan history={this.props.history}/>
                 <hr/>
                 {this.taoMon()}
-                <FloatGioHang tong_tien={this.Tong_Tien()}  history={this.props.history} goi_mon={this.props.items}/>
+                <FloatGioHang tong_tien={this.Tong_Tien()}  history={this.props.history} goi_mon={this.state.mon_duoc_chon} mon_da_goi={this.state.mon_da_goi}/>
             </div>
         )
     }

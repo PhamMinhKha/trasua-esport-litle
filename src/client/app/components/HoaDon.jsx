@@ -3,7 +3,8 @@ import firebase from './../config/FireBase';
 import './../../public/css/hoa_don.css';
 import NumberFormat from 'react-number-format';
 import {Alert} from 'react-bootstrap';
-
+import { connect } from 'react-redux';
+import { them_mon_vao_gio_hang, xoa_mon_khoi_gio_hang, thay_doi_so_luong_mon_trong_gio_hang, XOA_CAC_MON_TRONG_REDUCER, XOA_CAC_MON_TRONG_REDUCER_X} from './../actions/actions';
 class HoaDon extends Component {
     constructor(props) {
         super(props);
@@ -34,9 +35,13 @@ class HoaDon extends Component {
             });
             var tam = database.val();
             delete tam.trang_thai;
-            tam = Object.values(tam);
+            
             this.setState({
-                hoa_don: tam
+                hoa_don: tam.mon
+            })
+            this.props.xoa_cac_mon_trong_reducer();
+            this.state.hoa_don.map((value, index)=>{
+                this.props.them_mon_vao_gio_hang(value)
             })
             this.trangThaiHoaDon();
         })}
@@ -44,6 +49,7 @@ class HoaDon extends Component {
             
         }
     }
+
     trangThaiHoaDon(){
         let trang_thai_cua_ban = 0
         firebase.database().ref('ban/'+localStorage.getItem('ban')+'/goi_mon').on("value", (database)=>{
@@ -147,6 +153,7 @@ class HoaDon extends Component {
         var ma_hoa_don = '';
         if (this.state.hoa_don.length > 0) {
             this.state.hoa_don.map((value, index) => {
+                console.log(value)
                 html.push(this.TrTable(value, index));
                 tong_tien += value.so_luong * value.gia;
             })
@@ -208,4 +215,11 @@ class HoaDon extends Component {
         )
     }
 }
-export default HoaDon;
+const mapStateToProps = (state) => {
+    return { items: state.Mon }
+}
+const mapDispatchToProps = dispatch => ({
+    them_mon_vao_gio_hang: (mon_moi) => dispatch(them_mon_vao_gio_hang(mon_moi)),
+    xoa_cac_mon_trong_reducer: () => dispatch({type:XOA_CAC_MON_TRONG_REDUCER}),
+})
+export default connect(mapStateToProps, mapDispatchToProps)(HoaDon);

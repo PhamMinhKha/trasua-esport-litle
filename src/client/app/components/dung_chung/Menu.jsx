@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Navbar, Nav, Col } from 'react-bootstrap'
 import background from './../../../public/images/local/background menu.jpg'
-import {Link} from 'react-router-dom'
-
+import {Link, withRouter} from 'react-router-dom'
+import PropTypes from "prop-types";
 class Menu extends Component {
     constructor(props) {
         super(props);
@@ -12,8 +12,20 @@ class Menu extends Component {
         this.handleClick = this.handleClick.bind(this);
         this.handleClickXemBan = this.handleClickXemBan.bind(this);
     }
-    
+    static propTypes = {
+        match: PropTypes.object.isRequired,
+        location: PropTypes.object.isRequired,
+        history: PropTypes.object.isRequired
+      };
     componentDidMount(){
+        let xas = localStorage.getItem('isAdmin')
+        if(xas){
+            this.setState({
+                xas: true
+            })
+        }
+    }
+    componentWillReceiveProps(){
         let xas = localStorage.getItem('isAdmin')
         if(xas){
             this.setState({
@@ -26,8 +38,12 @@ class Menu extends Component {
         this.setState({
             xas: false
         })
+        return this.props.history.push({
+            pathname:'/'
+        })
     }
     buttonThoat(){
+        
         if(this.state.xas){
             return (<button className="btn btn-danger" onClick={this.handleClick}>Thoát</button>)
         }
@@ -64,4 +80,4 @@ class Menu extends Component {
 const BG = {
     backgroundImage: 'url(' + background + ')',
 }
-export default Menu
+export default withRouter(Menu) 

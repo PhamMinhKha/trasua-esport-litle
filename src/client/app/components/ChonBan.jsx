@@ -43,16 +43,16 @@ class ChonBan extends Component {
                 }
             })
         } else if (ban) {// hoa don chua thanh toan
-            firebase.database().ref('/ban/' + ban).on("value", (database) => {
-                let newArr = database.val()
-                if (newArr.goi_mon) {
-                    let ma_goi_mon = newArr.goi_mon.id_goi_mon
-                    if (ma_goi_mon) {
-                        localStorage.setItem("hoa_don", ma_goi_mon);
-                    }
-                }
+            // firebase.database().ref('/ban/' + ban).on("value", (database) => {
+            //     let newArr = database.val()
+            //     if (newArr.goi_mon) {
+            //         let ma_goi_mon = newArr.goi_mon.id_goi_mon
+            //         if (ma_goi_mon) {
+            //             localStorage.setItem("hoa_don", ma_goi_mon);
+            //         }
+            //     }
 
-            })
+            // })
         }
     }
     handleCloseModal() {
@@ -61,21 +61,16 @@ class ChonBan extends Component {
         })
     }
     HandleModal() {
-        return <ModalXacNhan history={this.props.history} tua_de="Thông Báo" thong_bao="Bàn này có hóa đơn chưa thanh toán. Bạn có muốn ngồi chung?" path='/hoa-don' param={this.state.ma_goi_mon} color="red" show={this.state.modal_xac_nhan} handleCloseModal={this.handleCloseModal} />
+        return <ModalXacNhan history={this.props.history} chuyenBan={this.handleClick} vi_tri={this.state.vi_tri} trang_thai_ban_chon={this.state.trang_thai_ban_chon} tua_de="Thông Báo" thong_bao="Bàn này có hóa đơn chưa thanh toán. Bạn có muốn ngồi chung?" path='/hoa-don' param={this.state.ma_goi_mon} color="red" show={this.state.modal_xac_nhan} handleCloseModal={this.handleCloseModal} />
     }
     KiemTraHoaDon(vi_tri, trang_thai) {
         console.log(vi_tri, '=', trang_thai)
+        let ban = localStorage.getItem('ban');
+        let hoa_don = localStorage.getItem('hoa_don');
         if (trang_thai) {
-            let ban = localStorage.getItem('ban');
-            let hoa_don = localStorage.getItem('hoa_don');
-            console.log(ban, '=', hoa_don)
             if (ban && !hoa_don) {// nếu đã chọn bàn mà muốn đổi bàn khác với điều kiện là không có hoa đơn
                 // Kiểm tra xem bạn khách chọn có hóa đơn hay chưa
                 //nếu có thì hỏi khách có muốn ngồi chung không
-                console.log(1)
-                firebase.database().ref('ban/' + ban + '/trang_thai').set(true);
-                var data = firebase.database().ref('ban/' + vi_tri);
-                data.child('trang_thai').set(false);
                 localStorage.setItem('ban', vi_tri);
                 return this.props.history.push({
                     pathname: '/chon-mon'
@@ -86,7 +81,6 @@ class ChonBan extends Component {
             else {
                 console.log(1)
                 var data = firebase.database().ref('ban/' + vi_tri);
-                data.child('trang_thai').set(false);
                 localStorage.setItem('ban', vi_tri);
                 return this.props.history.push({
                     pathname: '/chon-mon'
@@ -103,31 +97,38 @@ class ChonBan extends Component {
         }
     }
     handleClick(vi_tri, trang_thai) {
-        // Kiểm tra khách có hóa đơn hay chưa
-        let kiem_tra = this.KiemTraHoaDon(vi_tri, trang_thai);
-        let hoa_don = localStorage.getItem('hoa_don');
-        if (hoa_don) {
-            return this.setState({
-                modal: true,
-                thong_bao: 'Bạn chưa thanh toán hóa đơn đã gọi nên không thể đổi bàn'
-            }
-            );
-        }
         // chua có bàn va chọn bàn có hóa đơn
         firebase.database().ref('/ban/' + vi_tri).on("value", (database) => {
             let goi_mon = database.val().goi_mon;
-            console.log(goi_mon)
-            if (goi_mon) {
+            let hoa_don = localStorage.getItem('hoa_don');
+            console.log(typeof(goi_mon))
+            if (goi_mon && goi_mon.ma_goi_mon && !hoa_don) {
                 let ma_goi_mon = goi_mon.id_goi_mon
+                console.log('xxx', ma_goi_mon)
                 if (ma_goi_mon)// nếu đã có hóa đơn
                 {
-                    this.setState({
+                    return this.setState({
                         modal_xac_nhan: true,
-                        ma_goi_mon
+                        ma_goi_mon,
+                        vi_tri,
+                        trang_thai_ban_chon: trang_thai
                     })
                 }
+            } else {
+                if (hoa_don) {
+                    return this.setState({
+                        modal: true,
+                        thong_bao: 'Bạn chưa thanh toán hóa đơn đã gọi nên không thể đổi bàn'
+                    }
+                    );
+                }
+                else
+               { let kiem_tra = this.KiemTraHoaDon(vi_tri, trang_thai);}
             }
         })
+        // Kiểm tra khách có hóa đơn hay chưa
+
+
     }
     componentWillUpdate() {
         // $('#thong_bao').on('hidden.bs.toast',  () => {
@@ -154,7 +155,7 @@ class ChonBan extends Component {
             <div className="row">
                 {ban.map((value, i) => {
                     let trang_thai = (value.trang_thai === true) ? 'default' : 'success';
-                    return <Col xs={4} sm={4} md={5} key={i}>< button type="button" onClick={() => this.handleClick(value.vi_tri, value.trang_thai)} key={i} name={value.vi_tri} value={value.trang_thai} className={"btn3d btn btn-" + trang_thai + " btn-lg "} >< img src={imgBan} alt="" style={{ width: 50, height: 50, display: "block" }} /> {value.ten_ban} </button ></Col>
+                return <Col xs={4} sm={4} md={2} key={i}>< button type="button" onClick={() => this.handleClick(value.vi_tri, value.trang_thai)} key={i} name={value.vi_tri} value={value.trang_thai} className={"btn3d btn btn-" + trang_thai + " btn-lg "} >< img src={imgBan} alt="" style={{ width: 50, height: 50, display: "block" }} /> {value.ten_ban} </button ></Col>
                 })
                 }
             </div>

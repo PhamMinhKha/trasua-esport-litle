@@ -25,7 +25,7 @@ class Header extends Component {
         var ban = this.state.ban;
         return (
             <div>
-                Bạn Đang Chọn Bàn Số {ban} <button type="button" onClick={() => this.handleClick()} className={"btn3d btn btn-default btn-sm"}>Đổi bàn</button>
+                <span style={{position:"relative", top:10, fontSize:20, fontWeight:"bold"}}> Bàn số {ban}</span> <button type="button" onClick={() => this.handleClick()} className={"btn3d btn btn-default btn-sm"}>Đổi bàn</button>
             </div>
         )
     }

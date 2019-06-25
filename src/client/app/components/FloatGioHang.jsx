@@ -71,39 +71,50 @@ class FloatGioHang extends Component {
         var d = new Date();
         var time = d.getTime();
         const db = firebase.database().ref('goi_mon');
-        var mon_duoc_goi = [];
-        var mon = {};
-
+        var mon_duoc_goi = {};
+        mon_duoc_goi.mon = []
+        var mon_moi = {};
+        let i = 1
         this.props.goi_mon.map((value, index) => {
-            mon = value[1];
-            mon.time = time;
-            mon.id = value[0];
+            i++
+            mon_moi = value;
+            mon_moi.time = time;
+            mon_moi.id_mon = value.id_mon;
             mon_duoc_goi.trang_thai = false;
-            mon_duoc_goi.push(mon)
+            mon_duoc_goi.mon.push(mon_moi)
         })
-        
+        console.log(i)
+        console.log(mon_duoc_goi)
         //kiem tra xem hoa don goi mon da thanh toan hay chua
         //neu chua thanh toan thi cap nhat con da thanh toan thi them moi
         var ma_goi_mon = localStorage.getItem('hoa_don');
         let da_thanh_toan = false;
         if (ma_goi_mon !== null) { // đã gọi món trước đó
-            let db_goi_mon = firebase.database().ref('/goi_mon/' + ma_goi_mon).on("value", (database) => {
+            let db_goi_mon = firebase.database().ref('/goi_mon/' + ma_goi_mon).once("value", (database) => {
                 this.CapNhatIDGoiMonChoBanDuocChon(ma_goi_mon);
                 let hoa_don = database.val();
                 if (hoa_don.trang_thai === false) {
                     da_thanh_toan = false;
-                    let db_goi_mon = firebase.database().ref('/goi_mon/' + ma_goi_mon).set(mon_duoc_goi).then((value)=>{
+                    var mon_da_goi = this.props.mon_da_goi
+                    mon_duoc_goi.mon.map((value, index) =>{
+                        mon_da_goi.push(value)
+                    })
+                    console.log(mon_da_goi)
+                    // return ''
+                     let db_goi_mon = firebase.database().ref('/goi_mon/' + ma_goi_mon + '/mon/').set(mon_da_goi).then((value)=>{
                         return this.props.history.push({
-                                                pathname: "/hoa-don"
-                                            });
+                            pathname: "/hoa-don"
+                        });
                     });
                 }
                 else da_thanh_toan = true;
             })
         }else
          { // chưa gọi món
+            mon_duoc_goi = Object.assign({}, mon_duoc_goi);
+            console.log(mon_duoc_goi)
             firebase.database().ref('/goi_mon/').push(mon_duoc_goi)
-                    .then(res => {
+             .then(res => {
                         console.log('them id goi mon vao ban');
                         localStorage.setItem('hoa_don', res.getKey());
                         this.TaoMaKhachHang(res.getKey());
@@ -166,8 +177,8 @@ class FloatGioHang extends Component {
     render() {
         return (
             <div className="row col-12 on-top" style={bgStyle}>
-                <div className="col-4">
-                  {[this.props.tong_tien]}
+                <div className="col-4" style={{position:"relative", top:20, color:"white", fontSize:16, fontWeight:"bold"}}>
+                  Tổng tiền: {[this.props.tong_tien]}
                 </div>
                 <div className="col-6">
                     {this.ButtonChange()}

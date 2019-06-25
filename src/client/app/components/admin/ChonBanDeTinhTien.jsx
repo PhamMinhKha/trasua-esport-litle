@@ -91,7 +91,7 @@ class ChonBanDeTinhTien extends Component {
                     case 4: trang_thai = 'info';
                         text_trang_thai = "Gọi phục vụ"; break;// goi tinh tien
                 }
-            return <Col xs={4} sm={4} md={5} key={i}>< button type="button" onClick={() => this.handleClick(value, i)} key={i} name={value.vi_tri} value={value.trang_thai} className={"btn3d btn btn-" + trang_thai + " btn-lg ImgCha"} >
+            return <Col xs={4} sm={4} md={2} key={i}>< button type="button" onClick={() => this.handleClick(value, i)} key={i} name={value.vi_tri} value={value.trang_thai} className={"btn3d btn btn-" + trang_thai + " btn-lg ImgCha"} >
                 < img src={imgBan} alt="" style={{ width: 50, height: 50, display: "block" }} />
                 {value.ten_ban} 
                 {/* {text_trang_thai} */}

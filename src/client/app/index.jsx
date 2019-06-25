@@ -39,8 +39,8 @@ class App extends React.Component {
     return (
       <Provider store={store}>
       <HashRouter>
-      <Menu history={this.props.history}/>
-      <div className="container">
+      <Menu/>
+      <div className="container" style={{minHeight:500}}>
       {/* <ul>
           <li>
             <Link to="/">Home</Link>
@@ -79,7 +79,7 @@ class App extends React.Component {
 
         <hr/>
       </div>
-      <div style={{backgroundColor:"#333300", height:56, width:"100%", position:"fixed", bottom:0, fontSize:26, fontWeight:"bold", color:"white"}}>
+      <div style={{backgroundColor:"#333300", height:56, width:"100%", bottom:0, fontSize:26, fontWeight:"bold", color:"white"}}>
           <p style={{textAlign:"center"}}>Trà Sữa Esport</p>
       </div>
     </HashRouter >

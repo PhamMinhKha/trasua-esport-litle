@@ -25,6 +25,15 @@ class DangNhap extends Component{
         this.hanldeSubmit = this.hanldeSubmit.bind(this);
 
     }
+    componentDidMount(){
+        let t = localStorage.getItem('isAdmin')
+        if( t )
+        {
+            return this.props.history.push({
+                pathname: '/chon-ban-de-tinh-tien'
+            });
+        }
+    }
     hanldeSubmit(formData, e){
         var {user, password} = formData.formData
         if(user === "admin" && password === "admin"){
